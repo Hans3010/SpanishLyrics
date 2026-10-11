@@ -1,0 +1,7 @@
+# Contienen las letras originales (con derechos de autor): solo para uso local
+plantillas/
+para-traducir/
+_entrada/
+# Generados localmente
+dist/
+estado-traducciones.html
