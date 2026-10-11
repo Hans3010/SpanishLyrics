@@ -84,8 +84,10 @@ Se genera un archivo de LyricsPatch, que muestra la letra por tiempo sin tocar l
 
 ## Límite de 150 líneas
 
-El juego muestra como máximo 150 líneas de letra por canción. `Crear-Plantillas.ps1` avisa cuando una
-canción tiene más; para verlas todas hace falta el mod *OpenLyricLimit*.
+El juego muestra como máximo 150 líneas de letra por canción (las del `pv_db`). El mod incluye
+[OpenLyricLimit](https://github.com/korenkonder/MMPlusMods) de korenkonder (licencia MIT, ver
+`LICENSE-OpenLyricLimit.txt`), que sube el límite a 1000, así que las canciones largas se ven completas
+en cualquier idioma. `Crear-Plantillas.ps1` avisa qué canciones pasan de 150.
 
 ## Guía de estilo (español neutro)
 
@@ -121,4 +123,5 @@ Si la terminación no es `sp`, constrúyelo con `-SufijoIdioma xx`.
 - Lectura de los `.dsc` (tiempos de las letras) e idea de importar subtítulos: basadas en
   [LyricGen](https://github.com/Aura39/LyricGen) de Aura39 y en la tabla de comandos del
   [editor de DSC de nastys](https://github.com/nastys/nastys.github.io). El código es propio.
+- [OpenLyricLimit](https://github.com/korenkonder/MMPlusMods) por korenkonder (MIT), incluido en el mod.
 - Herramientas y mod: Hanserm.

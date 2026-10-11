@@ -40,6 +40,11 @@ New-Item -ItemType Directory -Force -Path $destino | Out-Null
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot '..\mod\config.toml') -Destination $destino
 $leeme = Join-Path $PSScriptRoot '..\mod\LEEME.txt'
 if (Test-Path -LiteralPath $leeme) { Copy-Item -LiteralPath $leeme -Destination $destino }
+# OpenLyricLimit (korenkonder, MIT): sube el límite del juego de 150 a 1000 líneas de letra por canción
+foreach ($extra in @('OpenLyricLimit.dll', 'LICENSE-OpenLyricLimit.txt')) {
+    $ruta = Join-Path $PSScriptRoot "..\mod\$extra"
+    if (Test-Path -LiteralPath $ruta) { Copy-Item -LiteralPath $ruta -Destination $destino }
+}
 
 # Busca el archivo de letras original (para tomar los tiempos) en las carpetas lyrics de los mods
 function Find-LyricsOriginal {

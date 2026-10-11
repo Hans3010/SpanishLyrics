@@ -1,6 +1,7 @@
 enabled = true
 name = "Spanish Lyrics"
 author = "Hanserm"
-version = "0.1.0"
-description = "Letras en español neutro para Project DIVA Mega Mix+. Las canciones oficiales usan el formato de LyricsPatch (requiere LyricsPatch) y las de packs usan rom_steam_sp. Ponlo arriba de todo en la lista de mods."
+version = "0.2.0"
+description = "Letras en español neutro para Project DIVA Mega Mix+. Las canciones oficiales usan el formato de LyricsPatch (requiere LyricsPatch) y las de packs usan rom_steam_sp. Incluye OpenLyricLimit de korenkonder (MIT) para mostrar más de 150 líneas por canción. Ponlo arriba de todo en la lista de mods."
+dll = ["OpenLyricLimit.dll"]
 include = ["."]
