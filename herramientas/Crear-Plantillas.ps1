@@ -7,6 +7,7 @@
       - Carpetas "lyrics" de los mods (formato LyricsPatch): canciones oficiales del juego.
         Toma el japonés de <id>_jp.toml y el romaji de <id>.toml, con sus tiempos.
       - Archivos rom\mod_pv_db.txt de los packs de canciones: toma el japonés (lyric) y el inglés (lyric_en).
+        El tiempo de cada línea se lee del chart del pack (rom\script\pv_<id>_*.dsc).
     Cada planilla tiene una columna "espanol" vacía para escribir la traducción.
 
     Las planillas contienen las letras originales, que tienen derechos de autor: son solo para trabajar
@@ -106,6 +107,11 @@ foreach ($mod in $modsLeidos) {
     foreach ($id in ($porCancion.Keys | Sort-Object { [int]$_ })) {
         $nombre = $pvdb["pv_$id.song_name_en"]
         if (-not $nombre) { $nombre = $pvdb["pv_$id.song_name"] }
+        # Tiempos de cada línea, leídos del chart (.dsc) del pack: sirven de guía al traducir
+        $tiempos = Get-TiemposDsc $mod.FullName $id
+        if ($porCancion[$id].Count -gt 150) {
+            Write-Warning "pv_$id ($nombre) tiene $($porCancion[$id].Count) líneas: el juego solo muestra 150 sin el mod OpenLyricLimit."
+        }
         $filas = foreach ($n in ($porCancion[$id] | Sort-Object { [int]$_ })) {
             $claveEn = "pv_$id.lyric_en.$n"
             $ingles = $null
@@ -116,7 +122,7 @@ foreach ($mod in $modsLeidos) {
                 cancion = $nombre
                 mod     = $mod.Name
                 linea   = $n
-                tiempo  = ''
+                tiempo  = $(if ($tiempos.ContainsKey([int]$n)) { Format-TiempoLp $tiempos[[int]$n].Inicio } else { '' })
                 japones = $pvdb["pv_$id.lyric.$n"]
                 romaji  = ''
                 ingles  = $ingles

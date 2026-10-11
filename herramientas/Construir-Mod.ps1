@@ -9,6 +9,7 @@
     - Canciones "pvdb" (packs): copia la entrada completa de la canción desde el pack original y
       reemplaza las líneas lyric_en por el español, en rom_steam_sp\rom\mod_pv_db.txt
       (la carpeta que usa el juego cuando está en español).
+    - Canciones "sub" (de Importar-Subtitulos.ps1): crea lyrics\<id>_<sufijo>.toml con los tiempos de la planilla.
     Las líneas sin traducir quedan vacías (lp) o con el texto que ya tenía el pack (pvdb).
 
 .EXAMPLE
@@ -71,7 +72,7 @@ $archivosCsv = Get-ChildItem -LiteralPath $Traducciones -Filter '*.csv'
 if (-not $archivosCsv) { Write-Warning "No hay planillas en $Traducciones"; }
 
 $pvdbSalida = New-Object System.Collections.Generic.List[string]
-$cancionesLp = 0; $cancionesPvdb = 0; $lineasTraducidas = 0; $lineasSinTraducir = 0
+$cancionesLp = 0; $cancionesPvdb = 0; $cancionesSub = 0; $lineasTraducidas = 0; $lineasSinTraducir = 0
 
 foreach ($archivo in $archivosCsv) {
     $filas = @(Import-Csv -LiteralPath $archivo.FullName -Encoding UTF8)
@@ -105,6 +106,29 @@ foreach ($archivo in $archivosCsv) {
             New-Item -ItemType Directory -Force -Path $dirLyrics | Out-Null
             [System.IO.File]::WriteAllText((Join-Path $dirLyrics "$id`_$SufijoIdioma.toml"), $sb.ToString(), $Utf8SinBom)
             $cancionesLp++
+        }
+        elseif ($primera.tipo -eq 'sub') {
+            # Planillas de Importar-Subtitulos.ps1: los tiempos vienen en la planilla
+            $filasSub = foreach ($f in $grupo.Group) {
+                $seg = ConvertFrom-TiempoTexto $f.tiempo
+                if ($seg -eq $null) { Write-Warning "[$($archivo.Name)] Línea $($f.linea): tiempo '$($f.tiempo)' no válido. Se omite."; continue }
+                [pscustomobject]@{ Segundos = $seg; Texto = $(if ($f.espanol) { $f.espanol.Trim() } else { '' }) }
+            }
+            $filasSub = @($filasSub | Sort-Object Segundos)
+            $archivoToml = Join-Path $destino "lyrics\$id`_$SufijoIdioma.toml"
+            if (Test-Path -LiteralPath $archivoToml) { Write-Warning "[$($archivo.Name)] pv_$id ya tenía letras de otra planilla; se reemplazan por los subtítulos." }
+            $sb = New-Object System.Text.StringBuilder
+            [void]$sb.AppendLine("# Spanish Lyrics - $($primera.cancion)")
+            [void]$sb.AppendLine('')
+            [void]$sb.AppendLine('lyrics = [')
+            foreach ($f in $filasSub) {
+                if ($f.Texto) { $lineasTraducidas++ }
+                [void]$sb.AppendLine("    {time = $(Format-TiempoLp $f.Segundos), text = `"$(ConvertTo-TomlString $f.Texto)`"},")
+            }
+            [void]$sb.AppendLine(']')
+            New-Item -ItemType Directory -Force -Path (Split-Path $archivoToml) | Out-Null
+            [System.IO.File]::WriteAllText($archivoToml, $sb.ToString(), $Utf8SinBom)
+            $cancionesSub++
         }
         elseif ($primera.tipo -eq 'pvdb') {
             $original = Find-PvDbOriginal $id $modOrigen
@@ -142,6 +166,7 @@ if ($pvdbSalida.Count -gt 0) {
 Write-Host "Mod generado en: $destino"
 Write-Host "  Canciones oficiales (LyricsPatch): $cancionesLp"
 Write-Host "  Canciones de packs: $cancionesPvdb"
+Write-Host "  Canciones desde subtítulos: $cancionesSub"
 Write-Host "  Líneas traducidas: $lineasTraducidas, sin traducir: $lineasSinTraducir"
 
 if ($Instalar) {

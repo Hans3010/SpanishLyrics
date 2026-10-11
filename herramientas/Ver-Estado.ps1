@@ -75,6 +75,27 @@ foreach ($d in ($dirs | Where-Object { $_.Name -ne $NombreModEspanol })) {
     }
 }
 
+# Canciones con letras en español por LyricsPatch que no están en la lista anterior
+# (por ejemplo, las importadas desde subtítulos con Importar-Subtitulos.ps1)
+$ids = @{}
+foreach ($r in $resultado) {
+    $ids[[string]$r.Id] = $true
+    # Una canción de pack también cuenta como traducida si tiene su archivo _sp.toml
+    if ($r.Tipo -eq 'pack' -and $conSp[[string]$r.Id]) { $r.Espanol = $r.Lineas }
+}
+foreach ($d in $dirs) {
+    $l = Join-Path $d.FullName 'lyrics'
+    if (-not (Test-Path -LiteralPath $l)) { continue }
+    foreach ($f in Get-ChildItem -LiteralPath $l -Filter '*_sp.toml') {
+        $id = $f.BaseName -replace '_sp$', ''
+        if ($ids[$id] -or $id -notmatch '^\d+$') { continue }
+        $ids[$id] = $true
+        $n = @(Read-LyricsPatchToml $f.FullName | Where-Object { $_.Texto }).Count
+        $nombre = (Get-NombreDesdeToml $f.FullName) -replace '^Spanish Lyrics - ', ''
+        $resultado.Add([pscustomobject]@{ Tipo = 'subtítulos'; Id = [int]$id; Cancion = $nombre; Mod = $d.Name; Lineas = $n; Espanol = $n; Ingles = $false })
+    }
+}
+
 function Estado($r) {
     if ($r.Espanol -ge $r.Lineas * 0.9) { return 'traducida' }
     if ($r.Espanol -gt 0) { return 'parcial' }

@@ -8,12 +8,13 @@ y el constructor arma el mod.
 
 ## Cómo funciona
 
-El juego guarda las letras de dos formas, y el mod soporta las dos:
+El juego guarda las letras de dos formas, y el mod soporta las dos (más una tercera para canciones sin letra):
 
 | Tipo | Canciones | Dónde va el español |
 |---|---|---|
 | `lp` | Canciones oficiales con archivos de [LyricsPatch](https://gamebanana.com/mods/414986) | `lyrics\<id>_<sufijo>.toml` (requiere LyricsPatch) |
 | `pvdb` | Packs de canciones (`mod_pv_db.txt`) | `rom_steam_sp\rom\mod_pv_db.txt` |
+| `sub` | Cualquier canción, desde subtítulos `.vtt`, `.srt` o `.lrc` | `lyrics\<id>_<sufijo>.toml` (requiere LyricsPatch) |
 
 `rom_steam_sp` es la carpeta que el juego carga cuando está configurado en español
 (igual que *English Lyrics* usa `rom_steam_en` para inglés).
@@ -57,6 +58,7 @@ $juego = "D:\SteamLibrary\steamapps\common\Hatsune Miku Project DIVA Mega Mix Pl
 |---|---|
 | `Ver-Estado.ps1 -CarpetaJuego $juego` | Crea `estado-traducciones.html`: qué canciones instaladas ya están en español |
 | `Exportar-Pendientes.ps1 -CarpetaJuego $juego -Pack "Nombre"` | Copia a `para-traducir` las planillas de un pack que faltan traducir |
+| `Importar-Subtitulos.ps1 -Archivo pv_123.srt` | Convierte subtítulos sincronizados (`.vtt`, `.srt`, `.lrc`) en una planilla `sub` para el mod. Sirve para canciones que no tienen letra en el juego |
 | `Crear-Lista-Canciones.ps1` | Crea `canciones-oficiales.html` con links para buscar traducciones |
 | `Crear-Prueba-Idioma.ps1` | Prueba qué terminación de archivo usa LyricsPatch (en español es `_sp`) |
 
@@ -64,6 +66,26 @@ $juego = "D:\SteamLibrary\steamapps\common\Hatsune Miku Project DIVA Mega Mix Pl
 
 - Canciones oficiales: 255 con borrador en español (traducción automática, pendiente de revisión).
 - Packs: algunas canciones de Nitori's Song Pack.
+
+## Canciones sin letra (subtítulos)
+
+Muchas canciones de packs no traen letra. Si tienes la letra en español sincronizada como subtítulos
+(por ejemplo, hecha con [Aegisub](https://aegisub.org) o un archivo `.lrc`), puedes agregarla:
+
+```powershell
+.\Importar-Subtitulos.ps1 -Archivo "C:\subs\pv_4501.srt" -Cancion "Nombre de la canción"
+# si la letra sale adelantada o atrasada:  -Desfase -0.3  (segundos)
+.\Construir-Mod.ps1 -CarpetaJuego $juego -Instalar
+```
+
+El número de la canción se toma del nombre del archivo (`pv_4501.srt`, `4501.lrc`) o de `-PvId`.
+El número de cada canción aparece en el nombre de las planillas o en `estado-traducciones.html`.
+Se genera un archivo de LyricsPatch, que muestra la letra por tiempo sin tocar los archivos del pack.
+
+## Límite de 150 líneas
+
+El juego muestra como máximo 150 líneas de letra por canción. `Crear-Plantillas.ps1` avisa cuando una
+canción tiene más; para verlas todas hace falta el mod *OpenLyricLimit*.
 
 ## Guía de estilo (español neutro)
 
@@ -96,4 +118,7 @@ Si la terminación no es `sp`, constrúyelo con `-SufijoIdioma xx`.
 
 - [LyricsPatch](https://gamebanana.com/mods/414986) por Jay.
 - Formato inspirado en *English Lyrics for Song Packs*.
+- Lectura de los `.dsc` (tiempos de las letras) e idea de importar subtítulos: basadas en
+  [LyricGen](https://github.com/Aura39/LyricGen) de Aura39 y en la tabla de comandos del
+  [editor de DSC de nastys](https://github.com/nastys/nastys.github.io). El código es propio.
 - Herramientas y mod: Hanserm.

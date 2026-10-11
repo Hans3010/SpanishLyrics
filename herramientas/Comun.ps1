@@ -81,3 +81,58 @@ function Test-CsvTraduccion {
     }
     return $true
 }
+
+# --- Tiempos -----------------------------------------------------------------------------------
+
+# Segundos -> formato de LyricsPatch (00:01:23.456000)
+function Format-TiempoLp {
+    param([double]$Segundos)
+    $ts = [TimeSpan]::FromTicks([long][math]::Round($Segundos * 10000000))
+    return '{0:00}:{1:00}:{2:00}.{3:000000}' -f [int][math]::Floor($ts.TotalHours), $ts.Minutes, $ts.Seconds, [int][math]::Floor(($ts.Ticks % 10000000) / 10)
+}
+
+# Texto de tiempo -> segundos. Acepta hh:mm:ss.fff, mm:ss.fff, ss.fff y coma decimal (Excel en español).
+# Devuelve $null si no es un tiempo.
+function ConvertFrom-TiempoTexto {
+    param([string]$Texto)
+    if (-not $Texto) { return $null }
+    $t = $Texto.Trim().Replace(',', '.')
+    if ($t -notmatch '^(?:(\d+):)?(?:(\d+):)?(\d+(?:\.\d+)?)$') { return $null }
+    $partes = $t.Split(':')
+    $segundos = 0.0
+    foreach ($p in $partes) { $segundos = $segundos * 60 + [double]::Parse($p, [Globalization.CultureInfo]::InvariantCulture) }
+    return $segundos
+}
+
+# --- Archivos .dsc (charts de las canciones de packs) -------------------------------------------
+
+$CarpetaHerramientas = $PSScriptRoot
+
+function Import-LectorDsc {
+    if (-not ('SpanishLyrics.LectorDsc' -as [type])) {
+        Add-Type -Path (Join-Path $CarpetaHerramientas 'LectorDsc.cs')
+    }
+}
+
+# Tiempos de las líneas de letra de una canción de un pack, leídos de sus .dsc (rom\script\pv_<id>_*.dsc).
+# Devuelve un diccionario: número de línea del pv_db (lyric.NNN) -> objeto con Inicio y Fin en segundos.
+# Usa el .dsc con más líneas (todas las dificultades suelen tener las mismas).
+function Get-TiemposDsc {
+    param([string]$CarpetaMod, [string]$PvId)
+    Import-LectorDsc
+    $resultado = @{}
+    $dir = Join-Path $CarpetaMod 'rom\script'
+    if (-not (Test-Path -LiteralPath $dir)) { return $resultado }
+    $id = [int]$PvId
+    $mejor = $null
+    foreach ($f in Get-ChildItem -LiteralPath $dir -Filter 'pv_*.dsc') {
+        if ($f.BaseName -notmatch '^pv_(\d+)_' -or [int]$matches[1] -ne $id) { continue }
+        $lineas = [SpanishLyrics.LectorDsc]::LeerLetras($f.FullName)
+        if ($lineas -and (-not $mejor -or $lineas.Count -gt $mejor.Count)) { $mejor = $lineas }
+    }
+    if ($mejor) {
+        # Si una línea aparece varias veces (estribillo repetido con el mismo número), se usa la primera
+        foreach ($l in $mejor) { if (-not $resultado.ContainsKey($l.Indice)) { $resultado[$l.Indice] = $l } }
+    }
+    return $resultado
+}
