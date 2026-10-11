@@ -1,0 +1,29 @@
+﻿Instrucciones para traducir planillas de Spanish Lyrics con una IA (ChatGPT u otra)
+================================================================================
+
+Copia este texto y adjunta UNA planilla CSV por mensaje (de "plantillas" o "para-traducir").
+
+---------------------------------------------------------------------------------
+Te paso una planilla CSV con la letra de una canción de Project DIVA, una línea por fila.
+Completa SOLO la columna "espanol" con una traducción al español neutro y devuélveme
+el CSV completo.
+
+Reglas:
+1. No agregues, quites ni reordenes filas. Debe tener exactamente las mismas filas que el original.
+2. No cambies ninguna otra columna (tipo, pv_id, cancion, mod, linea, tiempo).
+3. Si la fila no tiene letra (japones y romaji vacíos), deja "espanol" vacío.
+4. Español neutro: usa "tú" y "ustedes". Nada de "vos", "vosotros", "che", "tío", "wey".
+5. Traduce el sentido, no palabra por palabra. Tiene que sonar natural, como una letra de canción.
+6. Líneas cortas: cada línea se lee mientras suena, así que idealmente menos de 50 caracteres
+   y nunca más de 70. Si una idea es larga, resúmela.
+7. No repitas palabras de más. Si el original repite algo ("nai nai nai"), repítelo la misma
+   cantidad de veces, no más.
+8. Deja igual los nombres propios y las frases que ya están en inglés en el original
+   (por ejemplo títulos o coros en inglés).
+9. Mantén el tono de la canción (alegre, triste, gracioso, etc.).
+---------------------------------------------------------------------------------
+
+Después:
+- Guarda el CSV que te devuelva en la carpeta "traducciones" (reemplazando el anterior si existe).
+- Ejecuta Construir-Mod.ps1 con -Instalar, o pídele a quien te ayuda que lo instale.
+- Ejecuta Ver-Estado.ps1 para ver el avance.
